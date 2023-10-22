@@ -371,7 +371,7 @@ class PyVerilator:
     @classmethod
     def build(cls, top_verilog_file, verilog_path = [], build_dir = 'obj_dir',
               json_data = None, gen_only = False, quiet=False,
-              command_args=(), verilog_defines=()):
+              command_args=(), verilog_defines=(), make_args = []):
         """Build an object file from verilog and load it into python.
 
         Creates a folder build_dir in which it puts all the files necessary to create
@@ -489,7 +489,7 @@ class PyVerilator:
 
         # call make to build the pyverilator shared object
         make_args = ['make', '-C', build_dir, '-f', 'V%s.mk' % verilog_module_name,
-                     'LDFLAGS=-fPIC -shared']
+                     'LDFLAGS=-fPIC -shared', *make_args]
         call_process(make_args, quiet=quiet)
         so_file = os.path.join(build_dir, 'V' + verilog_module_name)
         return cls(so_file, command_args=command_args)
