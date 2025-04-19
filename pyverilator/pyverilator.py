@@ -406,8 +406,8 @@ class PyVerilator:
         # get the module name from the verilog file name
         top_verilog_file_base = os.path.basename(top_verilog_file)
         verilog_module_name, extension = os.path.splitext(top_verilog_file_base)
-        if extension != '.v':
-            raise ValueError('PyVerilator() expects top_verilog_file to be a verilog file ending in .v')
+        if extension not in ['.v', '.sv']:
+            raise ValueError('PyVerilator() expects top_verilog_file to be a verilog file ending in .v or .sv')
 
         # prepare the path for the C++ wrapper file
         if not os.path.exists(build_dir):
@@ -431,7 +431,7 @@ class PyVerilator:
                          + verilog_path_args \
                          + verilog_defines \
                          + ['-CFLAGS',
-                           '-fPIC -shared --std=c++11 -DVL_USER_FINISH',
+                           '-fPIC -shared --std=c++17 -DVL_USER_FINISH',
                             '--trace',
                             '--cc',
                             top_verilog_file,
@@ -449,7 +449,9 @@ class PyVerilator:
             # looks for VL_IN*, VL_OUT*, or VL_SIG* macros
             result = re.search('(VL_' + signal_type + r'[^(]*)\(([^,]+),([0-9]+),([0-9]+)(?:,[0-9]+)?\);', line)
             if result:
-                signal_name = result.group(2)
+                signal_name: str = result.group(2)
+                if signal_name.startswith('&'):
+                    signal_name = signal_name[1:]
                 if signal_type == 'SIG':
                     if signal_name.startswith(verilog_module_name) and '[' not in signal_name and int(
                             result.group(4)) == 0:
